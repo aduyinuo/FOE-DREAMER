@@ -1,0 +1,35 @@
+# Eight-host enterprise emulation deployed on an OpenStack cluster.
+# Three subnets connected by OpenStack security-group rules.
+name: scenario_small
+attacker_profile: avoidant
+max_steps: 100
+inventory_path: envs/inventory.yml
+playbook_dir: envs/playbooks
+c2_host: 127.0.0.1
+c2_port: 50051
+
+network:
+  segments:
+    - name: public
+      cidr: 10.0.1.0/24
+      hosts: [PublicWeb1, PublicWeb2]
+    - name: private_a
+      cidr: 10.0.2.0/24
+      hosts: [NTP, DB]
+    - name: private_b
+      cidr: 10.0.3.0/24
+      hosts: [WEB, PC1, PC2, PC3]
+  routes:
+    - {from: public,    to: private_a}
+    - {from: public,    to: private_b}
+    - {from: private_a, to: private_b}
+
+hosts:
+  - {name: PublicWeb1, role: dmz,  image: ubuntu-22.04-base, flavor: medium, services: [wordpress, ssh],     vulnerabilities: [wordpress_rce, cron_writable]}
+  - {name: PublicWeb2, role: dmz,  image: ubuntu-22.04-base, flavor: medium, services: [wordpress, ssh],     vulnerabilities: [wordpress_rce, cron_writable]}
+  - {name: NTP,        role: data, image: ubuntu-22.04-base, flavor: medium, services: [ntp, ssh],           vulnerabilities: [weak_ssh_creds, sudo_misconfig]}
+  - {name: DB,         role: data, image: ubuntu-22.04-base, flavor: medium, services: [postgres, ssh],      vulnerabilities: [weak_ssh_creds, sudo_misconfig]}
+  - {name: WEB,        role: app,  image: ubuntu-22.04-base, flavor: medium, services: [internal_web, ssh],  vulnerabilities: [weak_ssh_creds, sudo_misconfig]}
+  - {name: PC1,        role: ops,  image: ubuntu-22.04-base, flavor: medium, services: [ssh],                vulnerabilities: []}
+  - {name: PC2,        role: ops,  image: ubuntu-22.04-base, flavor: medium, services: [ssh],                vulnerabilities: []}
+  - {name: PC3,        role: ops,  image: ubuntu-22.04-base, flavor: medium, services: [ssh],                vulnerabilities: []}

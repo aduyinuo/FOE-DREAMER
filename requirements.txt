@@ -1,0 +1,7 @@
+torch>=1.12
+numpy>=1.21
+gymnasium>=0.28
+PyYAML>=6.0
+grpcio>=1.50
+protobuf>=3.20
+ansible>=6.0

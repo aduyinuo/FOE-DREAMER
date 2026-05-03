@@ -1,0 +1,43 @@
+---
+- name: Ensure /opt/foe_dreamer is present
+  file:
+    path: /opt/foe_dreamer
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Render user simulator unit
+  copy:
+    dest: /etc/systemd/system/user_simulator.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Per-host benign user simulator
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=simple
+      User=user
+      WorkingDirectory=/opt/foe_dreamer
+      ExecStart=/usr/bin/python3 -m users.user_runner --persona {{ user_persona | default('u_rand') }} --seed {{ user_seed | default(0) }}
+      Restart=on-failure
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Ensure ~/Documents exists for the simulator
+  file:
+    path: "/home/user/transfers"
+    state: directory
+    owner: "user"
+    mode: "0755"
+
+- name: Enable and start the user simulator
+  systemd:
+    name: user_simulator
+    enabled: true
+    state: restarted
+    daemon_reload: true

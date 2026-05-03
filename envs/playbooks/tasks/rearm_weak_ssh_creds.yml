@@ -1,0 +1,3 @@
+---
+- name: Re-arm weak ssh creds
+  include_tasks: vuln_weak_ssh_creds.yml

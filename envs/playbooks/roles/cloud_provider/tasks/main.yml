@@ -1,0 +1,30 @@
+---
+# Provider-agnostic VM lifecycle. The actual provider module is
+# selected from a fact (cloud_kind) populated by the controller's
+# environment, defaulting to "generic". Override `provider_module` to
+# target a specific cloud SDK.
+- name: Resolve provider module
+  set_fact:
+    provider_module: "{{ provider_module | default(cloud_kind | default('generic')) }}"
+
+- name: Create a host
+  when: action == "create"
+  block:
+    - name: Boot the host via the configured provider
+      shell: |
+        echo "[provider:{{ provider_module }}] boot host_id={{ host_spec.name }} flavor={{ host_spec.flavor }} image={{ host_spec.image }}"
+      register: boot_result
+      changed_when: false
+
+    - name: Add to runtime inventory
+      add_host:
+        name: "{{ host_spec.name }}"
+        groups:
+          - scenario
+          - "role_{{ host_spec.role }}"
+
+- name: Destroy a host
+  when: action == "destroy"
+  shell: |
+    echo "[provider:{{ provider_module }}] destroy host_id={{ host_spec }}"
+  changed_when: false

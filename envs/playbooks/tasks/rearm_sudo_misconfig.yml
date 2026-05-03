@@ -1,0 +1,3 @@
+---
+- name: Re-arm sudoers
+  include_tasks: vuln_sudo_misconfig.yml

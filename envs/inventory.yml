@@ -1,0 +1,15 @@
+# Ansible inventory for the cyber-defense scenario.
+#
+# Populated at deploy time by the cloud_provider role. The 'controller'
+# group hosts the C2 server; the 'scenario' group hosts the worker
+# nodes that get provisioned per-scenario. Endpoints, credentials, and
+# SSH keys are read from the provider's environment / vault.
+all:
+  children:
+    controller:
+      hosts: {}
+    scenario:
+      hosts: {}
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_ssh_common_args: "-o StrictHostKeyChecking=no"

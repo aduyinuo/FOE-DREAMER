@@ -1,0 +1,37 @@
+---
+# Resets the in-host runtime state without re-provisioning. Used between
+# episodes to keep the substrate hot. Performs:
+#   - kill any attacker processes left behind
+#   - re-arm vulnerabilities to their initial state
+#   - rotate ephemeral logs and clear inotify watch state
+#   - tell the C2 server to drop its accumulated alert queue
+- name: Reset scenario state in-place
+  hosts: scenario
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Kill any leftover attacker processes
+      shell: |
+        for pid in $(pgrep -f 'attacker_runner|exfil_demo' || true); do
+          kill -9 "$pid" || true
+        done
+      changed_when: false
+
+    - name: Re-arm host vulnerabilities
+      include_tasks: "tasks/rearm_{{ item }}.yml"
+      loop: "{{ host_meta[inventory_hostname].vulnerabilities | default([]) }}"
+
+    - name: Rotate ephemeral logs
+      shell: |
+        truncate -s 0 /var/log/auth.log /var/log/syslog || true
+      changed_when: false
+
+- name: Reset C2 server state
+  hosts: controller
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Send reset signal to C2 server
+      shell: |
+        curl -fsS -XPOST http://127.0.0.1:8082/admin/reset || true
+      changed_when: false

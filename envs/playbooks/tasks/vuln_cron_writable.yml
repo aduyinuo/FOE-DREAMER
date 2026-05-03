@@ -1,0 +1,12 @@
+---
+- name: Create a world-writable cron script
+  copy:
+    dest: /var/backup.sh
+    content: "#!/bin/sh\necho backup\n"
+    mode: "0777"
+
+- name: Schedule it
+  cron:
+    name: backup
+    job: /var/backup.sh
+    minute: "*/5"

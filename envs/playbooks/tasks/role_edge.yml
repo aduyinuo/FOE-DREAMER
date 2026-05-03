@@ -1,0 +1,12 @@
+---
+- name: Install reverse-proxy stack
+  apt:
+    name:
+      - haproxy
+      - nginx
+    state: present
+
+- name: Drop role marker
+  copy:
+    dest: /etc/role.edge
+    content: "edge\n"

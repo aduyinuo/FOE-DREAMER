@@ -1,0 +1,3 @@
+---
+- name: Re-arm wordpress vuln
+  include_tasks: vuln_wordpress_rce.yml

@@ -1,0 +1,42 @@
+---
+# Per-host telemetry: install sensor packages, prep log paths, and arm
+# the inotify watch list that the c2_client agent reads from.
+- name: Install telemetry packages
+  apt:
+    name:
+      - inotify-tools
+      - auditd
+      - rsyslog
+    state: present
+    update_cache: true
+
+- name: Ensure auth.log is writable to rsyslog
+  file:
+    path: /var/log/auth.log
+    state: touch
+    owner: syslog
+    group: adm
+    mode: "0640"
+
+- name: Enable auditd
+  systemd:
+    name: auditd
+    enabled: true
+    state: started
+
+- name: Configure auditd to track suid wrappers and cron paths
+  copy:
+    dest: /etc/audit/rules.d/foe_dreamer.rules
+    mode: "0640"
+    content: |
+      -w /usr/bin/script1 -p wa -k suid_modify
+      -w /var/backup.sh -p wa -k cron_modify
+      -w /root/important_data.txt -p ra -k data_access
+  notify: restart_auditd
+
+- name: Ensure data asset exists (used as honeyfile target)
+  copy:
+    dest: /root/important_data.txt
+    content: "flagged data\n"
+    mode: "0600"
+    force: false

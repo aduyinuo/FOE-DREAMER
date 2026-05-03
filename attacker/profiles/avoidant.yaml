@@ -1,0 +1,11 @@
+name: avoidant
+foothold_p: 0.4
+credentials_p: 0.35
+priv_esc_p: 0.3
+lateral_p: 0.2
+exfil_p: 0.45
+inter_step_seconds: 12.0
+target_assets:
+  - /root/important_data.txt
+revisit_p: 0.0
+detection_avoidance: 0.55

@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package c2;
+
+// Service exposed by the controller node. The defender (RL agent)
+// communicates with the controller through this RPC interface; the
+// controller dispatches per-host operations to per-host agents and
+// aggregates telemetry back into the defender's observation stream.
+
+service C2 {
+  rpc Hello (HelloReq) returns (HelloRsp);
+  rpc GetHostState (HostStateReq) returns (HostStateRsp);
+  rpc Dispatch (ActionReq) returns (ActionRsp);
+  rpc GetAlerts (AlertReq) returns (AlertRsp);
+  rpc Reset (ResetReq) returns (ResetRsp);
+
+  // Push a single alert from a per-host watcher to the controller.
+  rpc PushAlert (PushAlertReq) returns (PushAlertRsp);
+}
+
+// ---- liveness ----
+
+message HelloReq {
+  uint32 nonce = 1;
+}
+message HelloRsp {
+  uint32 nonce = 1;
+}
+
+// ---- host state ----
+//
+// Five-element per-host observation vector matching §4.2 of the
+// manuscript: alerts count, honeypot status, host availability, trap
+// indicators, and a digest of timestamped events.
+
+message HostStateReq {
+  string host_id = 1;
+}
+message HostStateRsp {
+  string host_id = 1;
+  uint32 alerts_count = 2;          // Alerts since last poll
+  bool honeypot_active = 3;          // Honeypot Status
+  bool host_up = 4;                  // Host Availability
+  bool trap_fired = 5;               // Trap Indicators
+  float last_event_age_s = 6;        // Age of most recent timestamped event
+}
+
+// ---- defender action dispatch ----
+//
+// Five-element action vocabulary: isolate, disrupt, monitor, deceive,
+// null. The Deceive action accepts a `variant` parameter selecting the
+// honeypot type (cowrie | suid_decoy).
+
+message ActionReq {
+  string host_id = 1;
+  string action = 2;
+  map<string, string> params = 3;
+}
+message ActionRsp {
+  bool success = 1;
+  string message = 2;
+}
+
+// ---- alerts ----
+
+message Alert {
+  double ts = 1;
+  string host_id = 2;
+  string kind = 3;
+  string detail = 4;
+}
+message AlertReq {
+  double since_ts = 1;
+}
+message AlertRsp {
+  repeated Alert alerts = 1;
+}
+
+// ---- reset ----
+
+message ResetReq {}
+message ResetRsp {
+  bool success = 1;
+}
+
+// ---- alert push (per-host watcher -> controller) ----
+
+message PushAlertReq {
+  string host_id = 1;
+  string kind = 2;       // ssh_login / suid_modify / cron_modify / trap_fired / ...
+  string detail = 3;
+  double ts = 4;
+}
+message PushAlertRsp {
+  bool accepted = 1;
+}

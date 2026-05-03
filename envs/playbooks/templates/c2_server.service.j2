@@ -1,0 +1,17 @@
+[Unit]
+Description=Cyber-defense C2 server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/c2
+ExecStart=/usr/bin/python3 -m c2.c2_server --bind 0.0.0.0:{{ c2_port | default(50051) }} --hosts {{ groups['scenario'] | join(' ') }}
+Restart=on-failure
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

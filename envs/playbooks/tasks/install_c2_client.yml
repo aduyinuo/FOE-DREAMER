@@ -1,0 +1,45 @@
+---
+- name: Ensure /opt/c2_client exists
+  file:
+    path: /opt/c2_client
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install per-host watcher dependencies
+  pip:
+    name:
+      - inotify
+      - pyyaml
+      - psutil
+    state: present
+    executable: pip3
+
+- name: Render watcher unit file
+  copy:
+    dest: /etc/systemd/system/c2_client.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Cyber-defense C2 client / per-host watcher
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=simple
+      User=root
+      WorkingDirectory=/opt/c2_client
+      ExecStart=/usr/bin/python3 -m c2.c2_client --controller {{ hostvars[groups['controller'][0]]['ansible_host'] | default('controller') }}
+      Restart=on-failure
+      RestartSec=3
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable and start the watcher
+  systemd:
+    name: c2_client
+    enabled: true
+    state: restarted
+    daemon_reload: true

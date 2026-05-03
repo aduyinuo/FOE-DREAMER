@@ -1,0 +1,16 @@
+---
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+
+- name: Open HTTP/HTTPS
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+  loop: ["80", "443"]
+
+- name: Drop role marker
+  copy:
+    dest: /etc/role.dmz
+    content: "dmz\n"

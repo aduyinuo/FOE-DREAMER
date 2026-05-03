@@ -1,0 +1,11 @@
+name: enticed
+foothold_p: 0.7
+credentials_p: 0.6
+priv_esc_p: 0.55
+lateral_p: 0.4
+exfil_p: 0.7
+inter_step_seconds: 4.0
+target_assets:
+  - /root/important_data.txt
+revisit_p: 0.0
+detection_avoidance: 0.0

@@ -1,0 +1,95 @@
+---
+# Provisions a scenario from a YAML spec passed in via --extra-vars.
+# The substrate is abstracted behind the os_server / cloud_provider role.
+# Pass a different role-set (e.g. libvirt, baremetal) by overriding the
+# `provisioner_role` variable.
+- name: Provision scenario hosts
+  hosts: localhost
+  gather_facts: false
+  vars:
+    provisioner_role: cloud_provider
+  tasks:
+    - name: Validate scenario blob
+      assert:
+        that:
+          - scenario_name is defined
+          - hosts is defined and hosts | length > 0
+        fail_msg: "missing scenario_name / hosts in --extra-vars"
+
+    - name: Render per-host metadata
+      set_fact:
+        host_meta: >-
+          {{ host_meta | default({}) | combine({ item.name: item }) }}
+      loop: "{{ hosts }}"
+
+    - name: Boot hosts
+      include_role:
+        name: "{{ provisioner_role }}"
+      vars:
+        action: create
+        host_spec: "{{ item }}"
+        scenario: "{{ scenario_name }}"
+      loop: "{{ hosts }}"
+
+    - name: Wait for SSH on each host
+      include_role:
+        name: wait_for_ssh
+      vars:
+        host_spec: "{{ item }}"
+      loop: "{{ hosts }}"
+
+- name: Configure scenario hosts
+  hosts: scenario
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Install base packages
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: true
+      vars:
+        packages:
+          - python3-pip
+          - rsyslog
+          - inotify-tools
+          - curl
+          - jq
+
+    - name: Apply per-role services
+      include_tasks: "{{ role_tasks }}"
+      vars:
+        role_tasks: "tasks/role_{{ host_meta[inventory_hostname].role }}.yml"
+
+    - name: Apply per-host vulnerabilities
+      include_tasks: "tasks/vuln_{{ item }}.yml"
+      loop: "{{ host_meta[inventory_hostname].vulnerabilities | default([]) }}"
+
+    - name: Install per-host telemetry sensors
+      include_tasks: tasks/install_telemetry.yml
+
+    - name: Install C2 client agent
+      include_tasks: tasks/install_c2_client.yml
+
+    - name: Install benign user simulator
+      include_tasks: tasks/install_user_simulator.yml
+      vars:
+        user_persona: "{{ 'u_burst' if host_meta[inventory_hostname].role == 'ops' else 'u_rand' }}"
+        user_seed: "{{ ansible_play_batch.index(inventory_hostname) | default(0) }}"
+
+- name: Start C2 server on controller
+  hosts: controller
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Render C2 systemd unit
+      template:
+        src: templates/c2_server.service.j2
+        dest: /etc/systemd/system/c2_server.service
+
+    - name: Enable and start C2 server
+      systemd:
+        name: c2_server
+        enabled: true
+        state: restarted
+        daemon_reload: true

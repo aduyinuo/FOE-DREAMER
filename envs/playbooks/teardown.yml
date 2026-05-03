@@ -1,0 +1,21 @@
+---
+- name: Tear down scenario hosts
+  hosts: localhost
+  gather_facts: false
+  vars:
+    provisioner_role: cloud_provider
+  tasks:
+    - name: Stop and delete every scenario host
+      include_role:
+        name: "{{ provisioner_role }}"
+      vars:
+        action: destroy
+        host_spec: "{{ item }}"
+      loop: "{{ groups['scenario'] | default([]) }}"
+
+    - name: Remove generated inventory entries
+      lineinfile:
+        path: "{{ playbook_dir }}/../inventory.yml"
+        regexp: "^{{ item }}:"
+        state: absent
+      loop: "{{ groups['scenario'] | default([]) }}"

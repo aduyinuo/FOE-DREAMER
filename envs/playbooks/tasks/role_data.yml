@@ -1,0 +1,18 @@
+---
+- name: Install database packages
+  apt:
+    name:
+      - postgresql
+      - redis-server
+    state: present
+
+- name: Drop the flagged data asset
+  copy:
+    dest: /root/important_data.txt
+    content: "flagged data\n"
+    mode: "0600"
+
+- name: Drop role marker
+  copy:
+    dest: /etc/role.data
+    content: "data\n"

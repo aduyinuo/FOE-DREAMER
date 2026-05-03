@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  role_name: cloud_provider
+  description: Provider-agnostic VM lifecycle role.
+  license: MIT
+  min_ansible_version: "2.10"
+dependencies: []

@@ -1,0 +1,13 @@
+---
+- name: Install vulnerable WordPress plugin bundle
+  copy:
+    dest: /srv/www/wordpress/wp-content/plugins/backup-backup/includes/marker
+    content: "vulnerable-plugin-marker\n"
+    mode: "0644"
+
+- name: Ensure www-data owns the plugin tree
+  file:
+    path: /srv/www/wordpress/wp-content/plugins
+    owner: www-data
+    group: www-data
+    recurse: true

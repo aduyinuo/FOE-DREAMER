@@ -1,0 +1,66 @@
+# Hyperparameters for FOE-Dreamer matching Appendix C of the manuscript.
+run_name: default
+output_dir: results/foe_dreamer
+
+env:
+  scenario_path: envs/scenarios/scenario_small.yaml
+  polling_interval_s: 5.0
+  episode_length: 100
+
+model:
+  # Factored latent: controllable z_t and exogenous u_t with separate KLs.
+  z_dim: 128
+  u_dim: 128
+  rssm_node_size: 256
+  embed_dim: 256
+  hidden_dim: 256
+  num_layers: 3
+
+  # Opponent model: sliding-window LSTM encoder + decoder.
+  tau_dim: 64
+  K_window: 10
+  predict_obs: false
+
+  actor_hidden: 256
+  critic_hidden: 256
+
+train:
+  seed: 42
+  device: cuda
+
+  episodes_per_iteration: 8
+  budget_days: 3
+  total_steps: 200000
+  prefill_steps: 5000
+  batch_size: 64
+  seq_len: 50
+  train_iters: 1
+  horizon: 30
+
+  alpha_policy: 0.5
+  beta_opponent: 0.3
+  beta_z: 1.0
+  beta_u: 0.5
+  free_nats: 1.0
+  kl_balance: 0.8
+
+  learning_rate: 0.0003
+  grad_clip: 100.0
+  target_tau: 0.005
+
+  replay_capacity: 100000
+
+  gamma: 0.99
+  lam: 0.95
+  entropy_coef: 0.001
+
+  eval_every_steps: 10000
+  eval_episodes: 10
+  checkpoint_every_steps: 25000
+  log_every_steps: 1000
+
+  epsilon_start: 0.4
+  epsilon_end: 0.05
+  epsilon_decay_steps: 50000
+
+  num_seeds: 5

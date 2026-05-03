@@ -1,0 +1,17 @@
+---
+- name: Wait for SSH to come up
+  wait_for:
+    host: "{{ hostvars[host_spec.name]['ansible_host'] | default(host_spec.name) }}"
+    port: 22
+    delay: 5
+    timeout: 600
+    state: started
+
+- name: Verify SSH responds to a no-op command
+  delegate_to: "{{ host_spec.name }}"
+  shell: "true"
+  register: ssh_probe
+  retries: 10
+  delay: 6
+  until: ssh_probe.rc == 0
+  changed_when: false

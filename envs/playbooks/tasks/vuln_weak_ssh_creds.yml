@@ -1,0 +1,12 @@
+---
+- name: Set a weak password for the user account
+  user:
+    name: user
+    password: "{{ 'changeme' | password_hash('sha512') }}"
+
+- name: Permit password authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PasswordAuthentication"
+    line: "PasswordAuthentication yes"
+  notify: restart_ssh

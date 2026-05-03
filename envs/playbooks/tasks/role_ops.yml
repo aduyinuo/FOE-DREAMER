@@ -1,0 +1,13 @@
+---
+- name: Install ops tools
+  apt:
+    name:
+      - tmux
+      - htop
+      - rsyslog
+    state: present
+
+- name: Drop role marker
+  copy:
+    dest: /etc/role.ops
+    content: "ops\n"

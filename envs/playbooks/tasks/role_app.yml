@@ -1,0 +1,19 @@
+---
+- name: Install application runtime
+  apt:
+    name:
+      - python3
+      - python3-pip
+      - build-essential
+    state: present
+
+- name: Create app user
+  user:
+    name: appsvc
+    shell: /bin/bash
+    create_home: true
+
+- name: Drop role marker
+  copy:
+    dest: /etc/role.app
+    content: "app\n"

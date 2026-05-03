@@ -1,0 +1,3 @@
+---
+- name: Re-arm cron writable
+  include_tasks: vuln_cron_writable.yml

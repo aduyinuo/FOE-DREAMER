@@ -1,0 +1,22 @@
+name: u_burst
+home: /home/user
+on_to_off_p: 0.05
+off_to_on_p: 0.08
+on_duration_alpha: 1.5
+on_duration_min: 5.0
+step_seconds: 5.0
+browse_session_min_requests: 5
+browse_session_max_requests: 10
+browse_request_seconds: 2.0
+ssh_session_min_seconds: 20.0
+ssh_session_max_seconds: 30.0
+db_query_min_seconds: 0.1
+db_query_max_seconds: 5.0
+file_transfer_min_seconds: 30.0
+file_transfer_max_seconds: 60.0
+peer_hosts: [WEB, DB, NTP]
+web_endpoints:
+  - http://PublicWeb1.local/
+  - http://PublicWeb2.local/
+  - http://WEB.local/intranet
+db_targets: [DB]
