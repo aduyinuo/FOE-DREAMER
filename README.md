@@ -39,17 +39,4 @@ pip install -r requirements.txt
 python -m interaction.train --config configs/foe_dreamer.yaml
 ```
 
-## Mapping to the paper
 
-| Paper section                           | Code path                                         |
-|-----------------------------------------|---------------------------------------------------|
-| §5.2 Factored World Model                 | `models/world_model.py`                           |
-| §5.3 Opponent Model                       | `models/opponent_model.py`                        |
-| §5.4 Live Training Loop (imagination + actor-critic)         | `models/losses.py::actor_critic_loss`             |
-| §4.3 Testbed                          | `envs/cyber_env.py`, `envs/playbooks/`         |
-| §5.4 Training procedure                 | `interaction/train.py`                            |
-| §6.3 Foe-head ablation                  | set `train.beta_opponent: 0.0` in the config      |
-
-## Notice
-
-References to prior work appear only as citations in the manuscript.
